@@ -64,6 +64,6 @@ while(1):
 
 # コマンド実行
 for i in range(1, 3):
-    command = ["ffmpeg", "-i", inputpath,"-t","30", "-b:v",f"{bitrate}k","-c:v","libx265", "-c:a", "copy", "-x265-params", f"pass={i}", "-y", outputpath]
+    command = ["ffmpeg", "-i", inputpath, "-b:v",f"{bitrate}k","-c:v","libx265", "-c:a", "copy", "-x265-params", f"pass={i}", "-y", outputpath]
     popen=subprocess.Popen(command)
     popen.wait()
