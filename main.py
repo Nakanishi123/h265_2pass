@@ -40,6 +40,7 @@ for i in information.stderr:
         length = inf.groups()[0]
         bitrate = inf.groups()[1]
         filesize = os.path.getsize(inputpath)/(1024**3)
+        filesize = round(filesize,1)
         break
 
 # 10GBになるくらいのビットレートを計算
