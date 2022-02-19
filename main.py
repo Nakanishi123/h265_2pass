@@ -63,8 +63,19 @@ while(1):
     if(isok == "y"):
         break
 
+# 2pass目だけやるかどうか
+start_pass = 1
+print("2pass目だけやりますか [y/n]")
+only2pass=input()
+if(only2pass=="y"):
+    print("2passだけやります")
+    start_pass=2
+else:
+    print("1passからやります")
+
+
 # コマンド実行
-for i in range(1, 3):
+for i in range(start_pass, 3):
     command = ["ffmpeg", "-i", inputpath, "-b:v",f"{bitrate}k","-c:v","libx265", "-c:a", "copy", "-x265-params", f"pass={i}", "-y", outputpath]
     popen=subprocess.Popen(command)
     popen.wait()
