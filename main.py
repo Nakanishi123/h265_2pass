@@ -1,13 +1,11 @@
 import sys
 import os
 import subprocess
-import re
-import time
+import json
 
 inputpath = sys.argv[1]
 input_name = os.path.splitext(inputpath)[0]
 input_ext = os.path.splitext(inputpath)[1]
-
 
 output_name = input_name
 output_ext = ".mkv"
@@ -16,7 +14,6 @@ if inputpath == outputpath:
     outputpath = output_name+"_new"+output_ext
 
 isok = "n"
-
 # ファイル名決める
 while(1):
     print("input  : "+inputpath)
@@ -30,24 +27,22 @@ while(1):
 
 # ビットレートとファイルサイズを取得
 x = os.path.exists(inputpath)
-information = subprocess.Popen(
-    ["ffprobe",  inputpath], stderr=subprocess.PIPE)
-time.sleep(1)
-
-for i in information.stderr:
-    inf = re.search(r"Duration:\s+(.+),\s.+bitrate:\s+(\d+)", str(i))
-    if inf != None:
-        length = inf.groups()[0]
-        bitrate = inf.groups()[1]
-        filesize = os.path.getsize(inputpath)/(1024**3)
-        filesize = round(filesize,1)
-        break
+cmd = ["ffprobe", '-hide_banner', '-show_streams', '-of', 'json',  inputpath]
+proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
+info = json.loads(proc.stdout)
+bitrate = int(info['streams'][0]['bit_rate'])/1000
+bitrate_a = int(info['streams'][1]['bit_rate'])/1000
+# ストリームの音声と動画が逆だった時に入れ替える
+if info['streams'][0]['codec_type'] == "audio":
+    bitrate, bitrate_a = bitrate_a, bitrate
+filesize = round(os.path.getsize(inputpath)/(1024**3), 1)
 
 # 10GBになるくらいのビットレートを計算
-bitrate_osusume = int(int(bitrate) * 9.6 / filesize)
-print(f"現在のビットレート : {bitrate} kb/s")
-print(f"現在のファイルサイズ : {filesize}GB")
-print(f"おすすめのビットレート : {bitrate_osusume}")
+bitrate_osusume = int((bitrate+bitrate_a)*9.7/filesize - bitrate_a)
+print(f"現在の動画のビットレート : {int(bitrate)} kb/s")
+print(f"現在の音声のビットレート : {int(bitrate_a)} kb/s")
+print(f"現在のファイルサイズ : {filesize} GB")
+print(f"おすすめのビットレート : {bitrate_osusume} kb/s")
 while(1):
     bitrate = input("ビットレート(k) >")
     if bitrate == "":
@@ -66,16 +61,16 @@ while(1):
 # 2pass目だけやるかどうか
 start_pass = 1
 print("2pass目だけやりますか [y/n]")
-only2pass=input()
-if(only2pass=="y"):
+only2pass = input()
+if(only2pass == "y"):
     print("2passだけやります")
-    start_pass=2
+    start_pass = 2
 else:
     print("1passからやります")
 
 
 # コマンド実行
 for i in range(start_pass, 3):
-    command = ["ffmpeg", "-i", inputpath, "-b:v",f"{bitrate}k","-c:v","libx265", "-c:a", "copy", "-x265-params", f"pass={i}", "-y", outputpath]
-    popen=subprocess.Popen(command)
+    command = ["ffmpeg", "-i", inputpath, "-b:v", f"{bitrate}k", "-c:v", "libx265", "-c:a", "copy", "-x265-params", f"pass={i}", "-y", outputpath]
+    popen = subprocess.Popen(command)
     popen.wait()
