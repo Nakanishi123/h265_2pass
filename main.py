@@ -183,7 +183,15 @@ def do_ffmpeg():
         popen.wait()
 
 
+def do_ssim():
+    ssim_cmd = ["ffmpeg", "-i", output_path.get(), "-i", inputpath, "-filter_complex", "ssim", "-an", "-f", "null", "-"]
+    ssim_popen = subprocess.Popen(ssim_cmd)
+    ssim_popen.wait()
+
+
 button = ttk.Button(root, text="スタート", command=do_ffmpeg)
+button_ssim = ttk.Button(root, text="ssim", command=do_ssim)
 button.pack()
+button_ssim.pack(side=tk.RIGHT)
 
 root.mainloop()
