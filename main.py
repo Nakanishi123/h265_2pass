@@ -100,6 +100,9 @@ bv.delete(0, 1)
 bv.insert(0, bitrate_osusume)
 bv_label.pack(side=tk.LEFT)
 bv.pack(side=tk.LEFT)
+# 元のサイズ
+bv_motomoto = ttk.Label(bv_f, text=f"元々 : {bitrate}k")
+bv_motomoto.pack(side=tk.LEFT)
 bv_f.pack(fill=tk.X, padx=10, pady=5)
 
 
